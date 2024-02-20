@@ -6,7 +6,7 @@ import { loginSchema, registrationSchema } from '../validationSchemas'
 function validateRegistration(req: Request, res: Response, next: NextFunction) {
   const { error } = registrationSchema.validate(req.body)
   if (error) {
-    return res.status(400).json({ error: error.details[0].message })
+    return res.status(400).json({ error: 'validation_error', message: error.details[0].message })
   }
   next()
 }
@@ -14,7 +14,7 @@ function validateRegistration(req: Request, res: Response, next: NextFunction) {
 function validateLogin(req: Request, res: Response, next: NextFunction) {
   const { error } = loginSchema.validate(req.body)
   if (error) {
-    return res.status(400).json({ error: error.details[0].message })
+    return res.status(400).json({ error: 'validation_error', message: error.details[0].message })
   }
   next()
 }

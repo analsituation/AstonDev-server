@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { UsersService } from '../services/user.service'
-import { RegistrationError } from '../types'
+import { AuthorizationError, RegistrationError } from '../types'
 
 export class UsersController {
   private readonly usersService: UsersService
@@ -25,8 +25,14 @@ export class UsersController {
         error: null,
         message: 'Successful authorization',
       })
-    } catch (error) {
-      return res.status(500).send('Error occurred')
+    } catch (error: unknown) {
+      const customError = error as AuthorizationError
+
+      if (customError.errorType === 'wrong_auth_data') {
+        return res.status(400).json({ error: customError.errorType, message: customError.message })
+      } else {
+        return res.status(400).json({ error: 'unexpected_error', message: 'Unexpected error' })
+      }
     }
   }
 
@@ -39,13 +45,12 @@ export class UsersController {
         message: 'User successfully registered',
       })
     } catch (error: unknown) {
-      if ((error as RegistrationError).errorType === 'email_exists') {
-        return res.status(400).json({ error: (error as RegistrationError).message })
-      } else if ((error as RegistrationError).errorType === 'username_exists') {
-        return res.status(400).json({ error: (error as RegistrationError).message })
+      const customError = error as RegistrationError
+
+      if (customError.errorType === 'email_exists' || customError.errorType === 'username_exists') {
+        return res.status(400).json({ error: customError.errorType, message: customError.message })
       } else {
-        console.error('Error in Register Controller:', error)
-        return res.status(500).send('Error occurred')
+        return res.status(400).json({ error: 'unexpected_error', message: 'Unexpected error' })
       }
     }
   }
